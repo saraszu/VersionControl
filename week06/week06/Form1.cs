@@ -18,15 +18,33 @@ namespace week06
     {
 
         BindingList<RateData> Rates = new BindingList<RateData>();
+        BindingList<string> currencies = new BindingList<string>();
 
         public Form1()
         {
             InitializeComponent();
+            comboBox1.DataSource = currencies;
             RefreshData();
+
+            var mnbService = new MNBArfolyamServiceSoapClient();
+
+            var request = new GetCurrenciesRequestBody();
+            var response = mnbService.GetCurrencies(request);
+
+            var result = response.GetCurrenciesResult;
+            XmlDocument vxml = new XmlDocument();
+            vxml.LoadXml(result);
+            foreach (XmlElement element in vxml.DocumentElement.FirstChild.ChildNodes)
+            {
+                currencies.Add(element.InnerText);
+            }
         }
 
         private void RefreshData()
         {
+            if (comboBox1.SelectedItem == null)
+                return;
+
             string xmlstring = Consume();
             LoadXml(xmlstring);
             dataGridView1.DataSource = Rates;
@@ -54,6 +72,7 @@ namespace week06
 
         string Consume()
         {
+
             var mnbService = new MNBArfolyamServiceSoapClient();
 
             var request = new GetExchangeRatesRequestBody()
